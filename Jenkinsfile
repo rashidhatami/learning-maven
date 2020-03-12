@@ -1,31 +1,33 @@
 pipeline {
-   agent { docker 'maven:latest' }
-    
+    agent {
+        docker {
+            image 'maven:latest'
+            args '-v /root/.m2:/root/.m2'
+        }
+    }
+    options {
+        skipStagesAfterUnstable()
+    }
     stages {
-     
-        stage ('Checkout') {
-          steps {
-                git 'https://github.com/rashidhatami/learning-maven.git'
-                 }
-        }
-	    stage ('Compile') {
-          steps {
-                sh 'mvn compile'
-                 }
-        }
-	   
-        stage('Package') {
+        stage('Build') {
             steps {
-                sh 'mvn clean Package'
-                
-		    }
-	}
-	    stage('Verify') {
+                sh 'mvn -B -DskipTests clean package'
+            }
+        }
+        stage('Test') {
             steps {
-                sh 'mvn verify'
-                
-		    }
-	}
-
+                sh 'mvn test'
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+        stage('Deliver') { 
+            steps {
+                sh './jenkins/scripts/deliver.sh' 
+            }
+        }
     }
 }
