@@ -9,6 +9,12 @@ pipeline {
         skipStagesAfterUnstable()
     }
     stages {
+        stage('Validate') {
+            steps {
+                sh 'mvn validate'
+            }
+        }
+        stages {
         stage('Compile') {
             steps {
                 sh 'mvn compile'
